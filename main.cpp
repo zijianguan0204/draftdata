@@ -25,7 +25,7 @@
 #include <iomanip>
 #include <sstream>
 
-#define D 4 //number of dimensions 53
+#define D 53 //number of dimensions 53
 #define datasize 11 //581012
 #define querysize 11 //number of queries 5???
 #define K 4 //k nearest neighbors 20
