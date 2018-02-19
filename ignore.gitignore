@@ -1,1 +1,4 @@
 dsh.cbp
+index*
+bin/*
+obj/*
