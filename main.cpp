@@ -1,7 +1,7 @@
 // ConsoleApplication8.cpp : Defines the entry point for the console application.
 //
 
-// 130 dsh.cpp : Defines the entry point for the console application. Adding some comment
+// 130 dsh.cpp : Defines the entry point for the console application.
 //
 
 //#include "stdafx.h"
@@ -19,13 +19,16 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
-#include <map>
+#include <string>
 //using namespace std;
 
-#define D 53 //number of dimensions
-#define datasize 581012
-#define querysize 5 //number of queries
-#define K 20 //k nearest neighbors
+#include <iomanip>
+#include <sstream>
+
+#define D 4 //number of dimensions 53
+#define datasize 11 //581012
+#define querysize 11 //number of queries 5???
+#define K 4 //k nearest neighbors 20
 #define familysize 200 //Size of hash family
 #define L 40
 #define Lused 25
@@ -33,7 +36,7 @@
 int forcin;
 
 #define M 15  //Number of hash functions selected
-#define bucketnum 2000 //number of buckets
+#define bucketnum 2000 //number of buckets 2000
 
 int totalcheck[Alter] = {};
 double R[Alter] = { 1,1.2,1.44,1.73,2.07,2.49,2.99,3.58,4.3,5.19 };
@@ -146,7 +149,7 @@ void computebound()
 void addvertex(int forcheck, double querypoint[])
 {
 	double dist;
-	dist = distancel2sq(data[forcheck], querypoint, 0);
+	dist = distancel2sq(data[forcheck], querypoint, 0); //distance calculation
 	//for debug
 	/*cout << "towrite " << towrite << endl;
 	cout << "dist " << dist << endl;
@@ -484,8 +487,61 @@ void construct_index()
 	return;
 }
 
+void diskread_double(std::string filename, double arrayA[][4]) // changed version
+{
+	int x;
+	int colA = 0;
+	int rowA = 0;
+	std::string lineA;
+	// Read file
+    std::ifstream file;
+	file.open(filename.c_str()); // Open file
+	while(file.good())
+    {
+        while(getline(file, lineA))
+        {
+            std::istringstream streamA(lineA);
+            colA=0;
+            while(streamA >>x)
+            {
+                arrayA[rowA][colA] = x;
+                std::cout << "This is array "<<arrayA[rowA][colA] << std::endl; //showing the content of the array.
+                colA++;
+                }
+            rowA++;
+        }
+    }
+	file.close();
+}
 
-void diskread_double(std::string filename, double array[], int size)
+void diskread_double_query(std::string filename, double arrayA[][4]) // changed version
+{
+	int x;
+	int colA = 0;
+	int rowA = 0;
+	std::string lineA;
+	// Read file
+    std::ifstream file;
+	file.open(filename.c_str()); // Open file
+	while(file.good())
+    {
+        while(getline(file, lineA))
+        {
+            std::istringstream streamA(lineA);
+            colA=0;
+            while(streamA >>x)
+            {
+                arrayA[rowA][colA] = x;
+                std::cout << "This is query "<<arrayA[rowA][colA] << std::endl; //showing the content of the array.
+                colA++;
+                }
+            rowA++;
+        }
+    }
+	file.close();
+}
+
+/*void diskread_double(std::string filename, double array[], int size) //diskread_double("covtype.data", data[0], datasize*D);
 {
 	FILE *fp;
 	fp = fopen(filename.c_str(), "rb");
@@ -498,7 +554,7 @@ void diskread_double(std::string filename, double array[], int size)
 	fclose(fp);
 
 	return;
-}
+}*/
 
 void diskwrite_double(std::string filename, double array[], int size)
 {
@@ -643,7 +699,7 @@ void batchquery()
 	for (int i = 0; i < querysize; i++)
 	{
 		pointquery(query[i], queryresult[i], i);
-		std::cout << "doing query id: " << i << " " << bound << std::endl;
+		std::cout << "doing query id: " << i << " " << bound << std::endl;  // what is bound?
 	}
 	return;
 }
@@ -675,7 +731,19 @@ void runEuclidean(int queryIndex){
   std::vector< std::pair <int, double> > vect;
 
   for(int i=0;i<datasize;i++){
+    std::cout << ".............................................." << std::endl; //added
+    std::cout << "Here is the data on row "<<i<<" "<<std::endl;
+    for(int j=0;j<sizeof(data[i])/8; j++)
+        std::cout <<data[i][j] <<" "<< std::endl;
+
+    std::cout << "Here is the query"<<std::endl;
+    for(int j=0;j<sizeof(query[queryIndex])/8; j++)
+        std::cout <<query[queryIndex][j] <<" "<< std::endl;
+
+    std::cout << ".............................................." << std::endl; //added
+    //std::cout << "One example for the query[1][1] is " << query[1][1] << std::endl;
     double dist = sqrt(distancel2sq(data[i], query[queryIndex], 100));
+     std::cout << "The distance is ------------------------------------------------------------>"<< dist << std::endl;
     vect.push_back(std::make_pair(i,dist));
     //double dist = getEuclideanDist(queryIndex,i);
     //euclideanDist[dist]=i;
@@ -686,7 +754,7 @@ void runEuclidean(int queryIndex){
   sort(vect.begin(), vect.end(), sortbysec);
  // std::map<double, int>::iterator it=euclideanDist.begin();
   for(int i=0;i<K;i++){
-     querygroundtruth[queryIndex][i]=vect[i].first;
+     query[queryIndex][i]=vect[i].first;
     //querygroundtruth[queryIndex][i]=(it->second);
     std::cout<<vect[i].first<<" ";
   }
@@ -714,11 +782,11 @@ void query_initialize()
 
 
 
-void query_module()
+/*void query_module()
 {
-	diskread_double("query.dat", query[0], querysize*D);
+	diskread_double("query.dat", query[0][100]); //changed version
 	std::cout << "query read from disk" << std::endl;
-	std::cout << "Query size" << sizeof(query)<< std::endl;
+	std::cout << "Query size" << sizeof(query)<< std::endl; //query should be query[11][4], but why size is 352????
 	query_initialize(); // initialize the query environment
 	buildGroundTruth();
     //query_load(); // load the query points into memory
@@ -758,7 +826,7 @@ void query_module()
 	diskwrite_int("result.dat", queryresult[0], querysize*K);
 	std::cout << "result write to disk" << std::endl;
 	return;
-}
+}*/
 
 void statistic_module()
 {
@@ -829,8 +897,8 @@ void statistic_module()
 		std::sort(gtdist, gtdist + K);
 		for (int j = 0; j < K; j++)
 		{
-			if (dshdist[j] <= gtdist[K - 1] + 0.0001) { sumrecall++; localrecall++; }
-			if (dshdist[j] - gtdist[j] < 0.0001) continue;
+			if (dshdist[j] <= gtdist[K - 1] + 0.000001) { sumrecall++; localrecall++; } //0.001
+			if (dshdist[j] - gtdist[j] < 0.000001) continue;                            //0.001
 			double temp = (dshdist[j] - gtdist[j]) / gtdist[j];
 			if (temp > 4) temp = 4;
 			if (temp < -0.01) std::cout << "error perform better than optimal!" << std::endl;
@@ -860,16 +928,17 @@ void statistic_module()
 
 int main()
 {
-
-	diskread_double("covtype.data", data[0], datasize*D);
+    diskread_double("covtype.data", data);//changed version
+    diskread_double_query("query.dat", query);//added function to read query
+	//diskread_double("covtype.data", data[0], datasize*D);
 	diskread_int("decision.dat", decision, datasize);
 	//diskread_double("R.dat", R, Alter);
 	for (int i = 0; i < Alter; i++)R[i] = 1.2*R[i];
 	std::cout << "data read from disk" << std::endl;
 	index_module();
 
-
-	query_module();
+    buildGroundTruth();
+	//query_module();
 	statistic_module();
 	return 0;
 }
